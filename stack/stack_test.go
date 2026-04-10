@@ -360,7 +360,7 @@ provider:
 		{
 			title:         "Provider is faas and gives error",
 			provider:      "faas",
-			expectedError: `['openfaas'] is the only valid "provider.name" for the OpenFaaS CLI, but you gave: faas`,
+			expectedError: `['openfaas'] or ['tinyfaas'] is the only valid "provider.name" for the OpenFaaS CLI, but you gave: faas`,
 			file: `version: 1.0
 provider:
   name: faas
@@ -371,7 +371,7 @@ provider:
 		{
 			title:         "Provider is serverless and gives error",
 			provider:      "faas",
-			expectedError: `['openfaas'] is the only valid "provider.name" for the OpenFaaS CLI, but you gave: serverless`,
+			expectedError: `['openfaas'] or ['tinyfaas'] is the only valid "provider.name" for the OpenFaaS CLI, but you gave: serverless`,
 			file: `version: 1.0
 provider:
   name: serverless
