@@ -1,4 +1,6 @@
-## go-sdk
+# OpenFaaS Go SDK
+
+This is a fork of the OpenFaaS Go SDK used for research purposes, please refer to the [original OpenFaaS Go SDK repository](https://github.com/openfaas/go-sdk).
 
 A lightweight Go SDK for use within OpenFaaS functions and to control the OpenFaaS gateway.
 
@@ -48,18 +50,18 @@ This is an example of a token source that gets a service account token mounted i
 type ServiceAccountTokenSource struct{}
 
 func (ts *ServiceAccountTokenSource) Token() (string, error) {
-	tokenMountPath := getEnv("token_mount_path", "/var/secrets/tokens")
-	if len(tokenMountPath) == 0 {
-		return "", fmt.Errorf("invalid token_mount_path specified for reading the service account token")
-	}
+ tokenMountPath := getEnv("token_mount_path", "/var/secrets/tokens")
+ if len(tokenMountPath) == 0 {
+  return "", fmt.Errorf("invalid token_mount_path specified for reading the service account token")
+ }
 
-	idTokenPath := path.Join(tokenMountPath, "openfaas-token")
-	idToken, err := os.ReadFile(idTokenPath)
-	if err != nil {
-		return "", fmt.Errorf("unable to load service account token: %s", err)
-	}
+ idTokenPath := path.Join(tokenMountPath, "openfaas-token")
+ idToken, err := os.ReadFile(idTokenPath)
+ if err != nil {
+  return "", fmt.Errorf("unable to load service account token: %s", err)
+ }
 
-	return string(idToken), nil
+ return string(idToken), nil
 }
 ```
 
@@ -82,62 +84,64 @@ client := sdk.NewClient(gatewayURL, auth, http.DefaultClient)
 
 ```go
 func Test_ClientCredentials(t *testing.T) {
-	clientID := ""
-	clientSecret := ""
-	tokenURL := "https://keycloak.example.com/realms/openfaas/protocol/openid-connect/token"
-	scope := "email"
-	grantType := "client_credentials"
+ clientID := ""
+ clientSecret := ""
+ tokenURL := "https://keycloak.example.com/realms/openfaas/protocol/openid-connect/token"
+ scope := "email"
+ grantType := "client_credentials"
 
-	audience = "" // Optional
+ audience = "" // Optional
 
-	auth := NewClientCredentialsTokenSource(clientID, clientSecret, tokenURL, scope, grantType, audience)
+ auth := NewClientCredentialsTokenSource(clientID, clientSecret, tokenURL, scope, grantType, audience)
 
-	token, err := auth.Token()
-	if err != nil {
-		t.Fatal(err)
-	}
+ token, err := auth.Token()
+ if err != nil {
+  t.Fatal(err)
+ }
 
-	if token == "" {
-		t.Fatal("token is empty")
-	}
+ if token == "" {
+  t.Fatal("token is empty")
+ }
 
-	u, _ := url.Parse("https://fed-gw.example.com")
+ u, _ := url.Parse("https://fed-gw.example.com")
 
-	client := NewClient(u, &ClientCredentialsAuth{tokenSource: auth}, http.DefaultClient)
+ client := NewClient(u, &ClientCredentialsAuth{tokenSource: auth}, http.DefaultClient)
 
-	fns, err := client.GetFunctions(context.Background(), "openfaas-fn")
-	if err != nil {
-		t.Fatal(err)
-	}
+ fns, err := client.GetFunctions(context.Background(), "openfaas-fn")
+ if err != nil {
+  t.Fatal(err)
+ }
 
-	if len(fns) == 0 {
-		t.Fatal("no functions found")
-	}
+ if len(fns) == 0 {
+  t.Fatal("no functions found")
+ }
 }
 ```
 
 ## Deploy Function
+
 ```go
 
 status, err := client.Deploy(context.Background(), types.FunctionDeployment{
-	Service:    "env-store-test",
-	Image:      "ghcr.io/openfaas/alpine:latest",
-	Namespace:  "openfaas-fn",
-	EnvProcess: "env",
+ Service:    "env-store-test",
+ Image:      "ghcr.io/openfaas/alpine:latest",
+ Namespace:  "openfaas-fn",
+ EnvProcess: "env",
 })
 
 // non 200 status value will have some error
 if err != nil {
-	log.Printf("Deploy Failed: %s", err)
+ log.Printf("Deploy Failed: %s", err)
 }
 ```
 
 ## Delete Function
+
 ```go
 
 err := client.DeleteFunction(context.Background(),"env-store-test", "openfaas-fn")
 if err != nil {
-	log.Printf("Deletion Failed: %s", err)
+ log.Printf("Deletion Failed: %s", err)
 }
 ```
 
@@ -149,7 +153,7 @@ Please refer [examples](https://github.com/openfaas/go-sdk/tree/master/examples)
 body := strings.NewReader("OpenFaaS")
 req, err := http.NewRequestWithContext(context.TODO(), http.MethodPost, "/", body)
 if err != nil {
-	panic(err)
+ panic(err)
 }
 
 req.Header.Set("Content-Type", "text/plain")
@@ -160,19 +164,19 @@ authenticate := false
 // Make a POST request to a figlet function in the openfaas-fn namespace
 res, err := client.InvokeFunction(context.Background(), "figlet", "openfaas-fn", async, authenticate, req)
 if err != nil {
-	log.Printf("Failed to invoke function: %s", err)
-	return
+ log.Printf("Failed to invoke function: %s", err)
+ return
 }
 
 if res.Body != nil {
-	defer res.Body.Close()
+ defer res.Body.Close()
 }
 
 // Read the response body
 body, err := io.ReadAll(res.Body)
 if err != nil {
-	log.Printf("Error reading response body: %s", err)
-	return
+ log.Printf("Error reading response body: %s", err)
+ return
 }
 
 // Print the response
@@ -231,7 +235,7 @@ lang := "node22"
 // Get the HMAC secret used for payload authentication with the builder API.
 payloadSecret, err := os.ReadFile("payload.txt")
 if err != nil {
-	log.Fatal(err)
+ log.Fatal(err)
 }
 payloadSecret = bytes.TrimSpace(payloadSecret)
 
@@ -242,13 +246,13 @@ b := builder.NewFunctionBuilder(builderURL, http.DefaultClient, builder.WithHmac
 // Create the function build context using the provided function handler and language template.
 buildContext, err := builder.CreateBuildContext(functionName, handler, lang, []string{})
 if err != nil {
-	log.Fatalf("failed to create build context: %s", err)
+ log.Fatalf("failed to create build context: %s", err)
 }
 
 // Create a temporary file for the build tar.
 tarFile, err := os.CreateTemp(os.TempDir(), "build-context-*.tar")
 if err != nil {
-	log.Fatalf("failed to temporary file: %s", err)
+ log.Fatalf("failed to temporary file: %s", err)
 }
 tarFile.Close()
 
@@ -258,27 +262,27 @@ defer os.Remove(tarPath)
 // Configuration for the build.
 // Set the image name plus optional build arguments and target platforms for multi-arch images.
 buildConfig := builder.BuildConfig{
-	Image:     image,
-	Platforms: []string{"linux/arm64"},
-	BuildArgs: map[string]string{},
+ Image:     image,
+ Platforms: []string{"linux/arm64"},
+ BuildArgs: map[string]string{},
 }
 
 // Prepare a tar archive that contains the build config and build context.
 // The function build context is a normal docker build context. Any valid folder with a Dockerfile will work.
 if err := builder.MakeTar(tarPath, buildContext, &buildConfig); err != nil {
-	log.Fatal(err)
+ log.Fatal(err)
 }
 
 // Invoke the function builder with the tar archive containing the build config and context
 // to build and push the function image.
 result, err := b.Build(tarPath)
 if err != nil {
-	log.Fatal(err)
+ log.Fatal(err)
 }
 
 // Print build logs
 for _, logMsg := range result.Log {
-	fmt.Printf("%s\n", logMsg)
+ fmt.Printf("%s\n", logMsg)
 }
 ```
 
@@ -291,47 +295,47 @@ Take a look at the [function builder examples](https://github.com/openfaas/funct
 // to build and push the function image.
 stream, err := b.BuildWithStream(tarPath)
 if err != nil {
-	log.Fatal(err)
+ log.Fatal(err)
 }
 defer stream.Close()
 
 for event, err := range stream.Results() {
-	if err != nil {
-		log.Fatal(err)
-	}
+ if err != nil {
+  log.Fatal(err)
+ }
 
-	if event.Log != nil {
-		for _, logMsg := range event.Log {
-			fmt.Printf("%s\n", logMsg)
-		}
-	}
+ if event.Log != nil {
+  for _, logMsg := range event.Log {
+   fmt.Printf("%s\n", logMsg)
+  }
+ }
 
-	if event.Status == builder.BuildSuccess || event.Status == builder.BuildFailed {
-		fmt.Printf("Status: %s\n", event.Status)
-		fmt.Printf("Image: %s\n", event.Image)
+ if event.Status == builder.BuildSuccess || event.Status == builder.BuildFailed {
+  fmt.Printf("Status: %s\n", event.Status)
+  fmt.Printf("Image: %s\n", event.Image)
 
-		if len(event.Error) > 0 {
-			fmt.Printf("Error: %s\n", event.Error)
-		}
-	}
+  if len(event.Error) > 0 {
+   fmt.Printf("Error: %s\n", event.Error)
+  }
+ }
 }
 ```
 
 When you use the `BuildWithStream` method, the SDK invokes the Function Builder API and requests that the build progress be streamed in the response. If the invocation is successful, the method returns a `*builder.BuildResultStream`. This stream allows you to iterate over the build progress and has two key methods:
 
-- `Results()`: This method returns a single-use iterator.
+* `Results()`: This method returns a single-use iterator.
 
-	You can use a range expression to loop over this iterator and receive intermediate build results. Each iteration produces a `builder.BuildResult` and an `error`.
+ You can use a range expression to loop over this iterator and receive intermediate build results. Each iteration produces a `builder.BuildResult` and an `error`.
 
-	While the build is in progress, `result.Status` will always be `in_progress`, and `result.Log` will contain the container build logs.
+ While the build is in progress, `result.Status` will always be `in_progress`, and `result.Log` will contain the container build logs.
 
-	When the build completes successfully, `result.Status` will be `success`, and `result.Image` will contain the reference for the published image. If an error occurs during the build process, the status will be `failed`, and `result.Error` should contain the error that caused the build to fail.
+ When the build completes successfully, `result.Status` will be `success`, and `result.Image` will contain the reference for the published image. If an error occurs during the build process, the status will be `failed`, and `result.Error` should contain the error that caused the build to fail.
 
-	The iterator produces an `error` only when something goes wrong while reading or parsing a build result from the HTTP response.
+ The iterator produces an `error` only when something goes wrong while reading or parsing a build result from the HTTP response.
 
-- `Close()`: This method stops the stream and ensures the underlying connection is closed.
+* `Close()`: This method stops the stream and ensures the underlying connection is closed.
 
-	The stream is automatically closed when you iterate through all results or when the iteration terminates (e.g., with `break` or `return`). However, it's a good practice to call `defer stream.Close()` immediately after a successful call to `BuildWithStream` to prevent any resource leaks.
+ The stream is automatically closed when you iterate through all results or when the iteration terminates (e.g., with `break` or `return`). However, it's a good practice to call `defer stream.Close()` immediately after a successful call to `BuildWithStream` to prevent any resource leaks.
 
 ## License
 
